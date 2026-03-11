@@ -19,22 +19,19 @@ One dependency. Four auth methods. Zero boilerplate.
 
 ## Installation
 
-Add JitPack to your `settings.gradle.kts`:
-
-```kotlin
-dependencyResolutionManagement {
-    repositories {
-        maven { url = uri("https://jitpack.io") }
-        // ... other repos
-    }
-}
-```
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.xemb0/auth)](https://central.sonatype.com/artifact/io.github.xemb0/auth)
 
 Add the dependency in your module's `build.gradle.kts`:
 
 ```kotlin
-implementation("com.github.Xemb0:kmp-multi-auth:1.0.0")
+// KMP (commonMain)
+implementation("io.github.xemb0:auth:1.0.0")
+
+// Android-only
+implementation("io.github.xemb0:auth-android:1.0.0")
 ```
+
+That's it — resolves from Maven Central, no extra repositories needed.
 
 ## Quick Start
 
