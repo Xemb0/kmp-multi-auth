@@ -19,9 +19,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.xemb0.auth.AuthConfig
-import org.jetbrains.compose.resources.painterResource
-import io.github.xemb0.auth.resources.Res
-import io.github.xemb0.auth.resources.ic_email
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 
 /**
  * Standalone Email Sign-In button. This is a styled button that triggers
@@ -62,7 +60,7 @@ fun EmailSignInButton(
         )
     ) {
         Image(
-            painter = painterResource(Res.drawable.ic_email),
+            painter = rememberVectorPainter(AuthIcons.Email),
             contentDescription = text,
             modifier = Modifier.size(24.dp),
             colorFilter = ColorFilter.tint(Color.White)

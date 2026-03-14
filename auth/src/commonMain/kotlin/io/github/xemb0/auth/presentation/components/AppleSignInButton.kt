@@ -30,9 +30,7 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.compose.auth.composeAuth
 import io.github.jan.supabase.compose.auth.composable.NativeSignInResult
 import io.github.jan.supabase.compose.auth.composable.rememberSignInWithApple
-import org.jetbrains.compose.resources.painterResource
-import io.github.xemb0.auth.resources.Res
-import io.github.xemb0.auth.resources.ic_apple
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 
 /**
  * Standalone Apple Sign-In button. Use this to embed Apple sign-in anywhere
@@ -121,7 +119,7 @@ fun AppleSignInButton(
             )
         } else {
             Image(
-                painter = painterResource(Res.drawable.ic_apple),
+                painter = rememberVectorPainter(AuthIcons.Apple),
                 contentDescription = text,
                 modifier = Modifier.size(24.dp),
                 colorFilter = ColorFilter.tint(textColor)

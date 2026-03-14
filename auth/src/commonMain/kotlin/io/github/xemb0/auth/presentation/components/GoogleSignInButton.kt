@@ -32,9 +32,8 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.auth.providers.builtin.IDToken
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.painterResource
-import io.github.xemb0.auth.resources.Res
-import io.github.xemb0.auth.resources.ic_google
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import io.github.xemb0.auth.presentation.SetupGoogleSignIn
 
 /**
  * Standalone Google Sign-In button. Use this to embed Google sign-in anywhere
@@ -64,6 +63,7 @@ fun GoogleSignInButton(
     height: Dp = 52.dp,
     enabled: Boolean = true
 ) {
+    SetupGoogleSignIn()
     val scope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false) }
 
@@ -130,7 +130,7 @@ fun GoogleSignInButton(
             )
         } else {
             Image(
-                painter = painterResource(Res.drawable.ic_google),
+                painter = rememberVectorPainter(AuthIcons.Google),
                 contentDescription = text,
                 modifier = Modifier.size(24.dp)
             )
