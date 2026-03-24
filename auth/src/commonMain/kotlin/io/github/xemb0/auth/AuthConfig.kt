@@ -24,6 +24,7 @@ open class AuthStrings {
     open val continueWithEmail: String = "Continue with Email"
     open val orDivider: String = "or"
     open val cancel: String = "Cancel"
+    open val tryAgain: String = "Try Again"
     open val termsOfService: String = "By continuing, you agree to our Terms of Service"
     open val signInWithEmail: String = "Sign in with Email"
     open val emailSubtitle: String = "We'll send a verification code to your email"

@@ -266,16 +266,20 @@ fun AuthScreen(
             )
         }
 
-        // Cancel button when loading
-        if (isLoading) {
+        // Cancel button — always visible during loading or when an error occurred
+        // Resets entire sign-in state so user can retry from scratch
+        if (isLoading || errorMessage != null) {
             Spacer(modifier = Modifier.height(16.dp))
             TextButton(
-                onClick = { isLoading = false }
+                onClick = {
+                    isLoading = false
+                    errorMessage = null
+                }
             ) {
                 Text(
-                    text = strings.cancel,
+                    text = if (errorMessage != null) strings.tryAgain else strings.cancel,
                     style = MaterialTheme.typography.titleMedium,
-                    color = textSecondary
+                    color = if (errorMessage != null) primary else textSecondary
                 )
             }
         }
