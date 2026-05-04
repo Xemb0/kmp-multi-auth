@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "io.github.xemb0"
-version = "1.0.6"
+version = "1.0.8"
 
 kotlin {
     androidTarget {
