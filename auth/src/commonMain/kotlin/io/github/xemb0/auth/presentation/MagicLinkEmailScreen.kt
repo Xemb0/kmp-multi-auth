@@ -70,6 +70,9 @@ fun MagicLinkEmailScreen(
 
     val isValidEmail = AuthConfig.emailValidator(email.trim())
 
+    // Route system / gesture back through the same callback as the icon button above.
+    PlatformBackHandler(enabled = !isLoading) { onBack() }
+
     fun submit() {
         if (!isValidEmail || isLoading) return
         isLoading = true

@@ -1,7 +1,8 @@
 package io.github.xemb0.auth.presentation.components
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
@@ -77,9 +78,10 @@ fun AnonymousSignInButton(
         },
         modifier = modifier
             .fillMaxWidth()
-            .height(height),
+            .heightIn(min = height),
         shape = shape,
-        enabled = enabled && !isLoading
+        enabled = enabled && !isLoading,
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
     ) {
         if (isLoading) {
             CircularProgressIndicator(

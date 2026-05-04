@@ -2,9 +2,10 @@ package io.github.xemb0.auth.presentation.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +33,7 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.auth.providers.builtin.IDToken
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import io.github.xemb0.auth.presentation.SetupGoogleSignIn
@@ -61,11 +64,26 @@ fun GoogleSignInButton(
     text: String = AuthConfig.strings.continueWithGoogle,
     shape: Shape = RoundedCornerShape(12.dp),
     height: Dp = 52.dp,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    onLoadingChanged: (Boolean) -> Unit = {},
+    cancelSignal: Int = 0,
 ) {
+    // NOTE: [height] is treated as a *minimum* (heightIn). Using a fixed .height(...) would
+    // clip the icon/label at larger system font scales. The button grows to fit its content.
     SetupGoogleSignIn()
     val scope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false) }
+    var currentJob by remember { mutableStateOf<Job?>(null) }
+    LaunchedEffect(isLoading) { onLoadingChanged(isLoading) }
+    // External cancel: parent increments cancelSignal → we abort any in-flight job
+    // and reset the spinner so the user can retry.
+    LaunchedEffect(cancelSignal) {
+        if (cancelSignal > 0 && isLoading) {
+            currentJob?.cancel()
+            currentJob = null
+            isLoading = false
+        }
+    }
 
     val textColor = MaterialTheme.colorScheme.onBackground
     val borderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
@@ -73,9 +91,15 @@ fun GoogleSignInButton(
 
     OutlinedButton(
         onClick = {
-            if (isLoading) return@OutlinedButton
+            if (isLoading) {
+                // Second tap while loading = cancel in-flight sign-in.
+                currentJob?.cancel()
+                currentJob = null
+                isLoading = false
+                return@OutlinedButton
+            }
             isLoading = true
-            scope.launch {
+            currentJob = scope.launch {
                 try {
                     when (val result = googleSignInService.signIn()) {
                         is GoogleSignInResult.Success -> {
@@ -85,6 +109,7 @@ fun GoogleSignInButton(
                             }
                             val user = supabaseClient.auth.currentUserOrNull()
                             isLoading = false
+                            currentJob = null
                             if (user != null) {
                                 onResult(AuthResult.Success(
                                     AuthUser(
@@ -98,29 +123,43 @@ fun GoogleSignInButton(
                             }
                         }
                         is GoogleSignInResult.BrowserFlowStarted -> {
-                            // Session collector in the caller handles this
+                            // iOS ASWebAuthenticationSession path: signIn() suspends
+                            // until the Supabase session is set, so by the time we
+                            // get here the user is authenticated. The screen-level
+                            // sessionStatus collector handles navigation; we just
+                            // need to clear our local spinner.
+                            isLoading = false
+                            currentJob = null
                         }
                         is GoogleSignInResult.Cancelled -> {
                             isLoading = false
+                            currentJob = null
                             onResult(AuthResult.Cancelled)
                         }
                         is GoogleSignInResult.Error -> {
                             isLoading = false
+                            currentJob = null
                             onResult(AuthResult.Error(result.message))
                         }
                     }
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    isLoading = false
+                    currentJob = null
+                    throw e
                 } catch (e: Exception) {
                     isLoading = false
+                    currentJob = null
                     onResult(AuthResult.Error(e.message ?: AuthConfig.strings.signInFailed))
                 }
             }
         },
         modifier = modifier
             .fillMaxWidth()
-            .height(height),
+            .heightIn(min = height),
         shape = shape,
-        enabled = enabled && !isLoading,
-        border = BorderStroke(1.dp, borderColor)
+        enabled = enabled,
+        border = BorderStroke(1.dp, borderColor),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
     ) {
         if (isLoading) {
             CircularProgressIndicator(

@@ -2,9 +2,10 @@ package io.github.xemb0.auth.presentation.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,9 +56,20 @@ fun AppleSignInButton(
     text: String = AuthConfig.strings.signInWithApple,
     shape: Shape = RoundedCornerShape(12.dp),
     height: Dp = 52.dp,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    onLoadingChanged: (Boolean) -> Unit = {},
+    cancelSignal: Int = 0,
 ) {
     var isLoading by remember { mutableStateOf(false) }
+    LaunchedEffect(isLoading) { onLoadingChanged(isLoading) }
+    // External cancel — parent bumps cancelSignal to reset our spinner. Apple's
+    // native sheet has its own Close button, so there's no job to cancel; we
+    // just reset local UI state.
+    LaunchedEffect(cancelSignal) {
+        if (cancelSignal > 0 && isLoading) {
+            isLoading = false
+        }
+    }
 
     val textColor = MaterialTheme.colorScheme.onBackground
     val borderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
@@ -95,7 +108,12 @@ fun AppleSignInButton(
 
     OutlinedButton(
         onClick = {
-            if (isLoading) return@OutlinedButton
+            if (isLoading) {
+                // Tapping the button again while loading resets state so the
+                // user can retry without relaunching the app.
+                isLoading = false
+                return@OutlinedButton
+            }
             isLoading = true
             try {
                 appleSignInState.startFlow()
@@ -106,10 +124,11 @@ fun AppleSignInButton(
         },
         modifier = modifier
             .fillMaxWidth()
-            .height(height),
+            .heightIn(min = height),
         shape = shape,
-        enabled = enabled && !isLoading,
-        border = BorderStroke(1.dp, borderColor)
+        enabled = enabled,
+        border = BorderStroke(1.dp, borderColor),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
     ) {
         if (isLoading) {
             CircularProgressIndicator(

@@ -72,6 +72,9 @@ fun MagicLinkOtpScreen(
     val textPrimary = MaterialTheme.colorScheme.onBackground
     val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
 
+    // System/gesture back: go back to email entry (same as the icon button).
+    PlatformBackHandler { onBack() }
+
     // Watch for session becoming authenticated (user clicked the magic link)
     LaunchedEffect(Unit) {
         supabaseClient.auth.sessionStatus.collect { status ->
@@ -125,13 +128,23 @@ fun MagicLinkOtpScreen(
 
         Spacer(modifier = Modifier.height(80.dp))
 
-        // Email icon
-        Text(
-            text = "\u2709\uFE0F",
-            fontSize = 64.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
+        // App branding: prefer host-provided logo, fall back to envelope emoji so older
+        // hosts that never set AuthConfig.appLogo keep rendering something meaningful.
+        val appLogo = AuthConfig.appLogo
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            if (appLogo != null) {
+                appLogo()
+            } else {
+                Text(
+                    text = "\u2709\uFE0F",
+                    fontSize = 64.sp,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 

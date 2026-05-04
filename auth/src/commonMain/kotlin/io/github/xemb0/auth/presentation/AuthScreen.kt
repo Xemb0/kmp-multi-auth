@@ -87,6 +87,9 @@ fun AuthScreen(
 
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
+    // Monotonic counter — bumping this tells each sign-in button to abort its
+    // in-flight job and reset its spinner so the user can retry from scratch.
+    var cancelSignal by remember { mutableStateOf(0) }
 
     val primary = AuthConfig.primaryColor ?: MaterialTheme.colorScheme.primary
     val textPrimary = MaterialTheme.colorScheme.onBackground
@@ -180,7 +183,9 @@ fun AuthScreen(
                         }
                     }
                 },
-                enabled = !isLoading
+                enabled = true,
+                onLoadingChanged = { isLoading = it },
+                cancelSignal = cancelSignal,
             )
             Spacer(modifier = Modifier.height(12.dp))
         }
@@ -202,7 +207,9 @@ fun AuthScreen(
                         }
                     }
                 },
-                enabled = !isLoading
+                enabled = true,
+                onLoadingChanged = { isLoading = it },
+                cancelSignal = cancelSignal,
             )
             Spacer(modifier = Modifier.height(12.dp))
         }
@@ -272,6 +279,10 @@ fun AuthScreen(
             Spacer(modifier = Modifier.height(16.dp))
             TextButton(
                 onClick = {
+                    // Tell every sign-in button to abort its in-flight job and
+                    // reset its spinner. The LaunchedEffect(cancelSignal) in each
+                    // button observes this change.
+                    cancelSignal += 1
                     isLoading = false
                     errorMessage = null
                 }
